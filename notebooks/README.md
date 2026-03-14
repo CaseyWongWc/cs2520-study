@@ -16,4 +16,8 @@ Organized by chapter/topic. Each notebook has:
 1. Open a notebook in VS Code or Codespace
 2. Run example cells with **Shift+Enter**
 3. Fill in the 🏋️ Try It cells yourself
+<<<<<<< HEAD
 4. Add notes in the 📝 Your Notes cell at the bottom
+=======
+4. Add notes in the 📝 Your Notes cell at the bottom
+>>>>>>> c809fbcf7be37592365a5397cdf3a499947813ce
