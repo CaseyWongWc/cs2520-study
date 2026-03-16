@@ -3,7 +3,7 @@
 # Usage:
 #   Start:  bash autosave.sh start
 #   Stop:   babash autosave.sh stop
-9 autosave.
+
 #   Status: bash autosave.sh status
 
 PIDFILE=".autosave.pid"
