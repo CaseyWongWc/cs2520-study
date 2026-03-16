@@ -2,7 +2,8 @@
 # 🔄 autosave.sh — auto git commit & push every 20 seconds
 # Usage:
 #   Start:  bash autosave.sh start
-#   Stop:   bash autosave.sh stop
+#   Stop:   bas
+9 autosave.sh stop
 #   Status: bash autosave.sh status
 
 PIDFILE=".autosave.pid"
