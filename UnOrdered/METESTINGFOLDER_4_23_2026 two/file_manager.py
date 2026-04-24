@@ -37,7 +37,6 @@ print("Current working directory:", here())
 
 # Examples:
 # make_dir("demo/subfolder")
-# make_file("demo/subfolder/hello.txt", "hello from notebook
-Hey.")
+# make_file("demo/subfolder/hello.txt", "hello from notebook\nHey.")
 # run_cmd("find", "demo", "-maxdepth", "3")
 # remove_path("demo")
