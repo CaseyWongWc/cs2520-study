@@ -1,0 +1,6 @@
+Flask
+ipywidgets
+jupyter
+notebook
+shutil
+subprocess
