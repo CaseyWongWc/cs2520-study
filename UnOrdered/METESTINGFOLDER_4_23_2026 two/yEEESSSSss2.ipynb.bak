@@ -1,0 +1,2728 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "c718b25b",
+   "metadata": {},
+   "source": [
+    "### ~"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "5174fa74",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from IPython.core.interactiveshell import InteractiveShell\n",
+    "InteractiveShell.ast_node_interactivity = \"all\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "9957a744",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import builtins\n",
+    "\n",
+    "# Store the original input function once, globally, to avoid re-capturing a mocked input\n",
+    "if not hasattr(builtins, '_original_input_backup'):\n",
+    "    builtins._original_input_backup = builtins.input\n",
+    "\n",
+    "def set_test_inputs(inputs_list):\n",
+    "    \"\"\"\n",
+    "    Sets up a mock input function that draws from a list of inputs.\n",
+    "    If inputs_list is None or empty, restores the original input function.\n",
+    "    \"\"\"\n",
+    "    if inputs_list:\n",
+    "        input_iter = iter(inputs_list)\n",
+    "        def mock_input(prompt=\"\"):\n",
+    "            try:\n",
+    "                value = next(input_iter)\n",
+    "                print(f\"{prompt}{value}\")\n",
+    "                return value\n",
+    "            except StopIteration:\n",
+    "                raise EOFError(\"No more inputs for testing\")\n",
+    "        builtins.input = mock_input\n",
+    "    else:\n",
+    "        builtins.input = builtins._original_input_backup\n",
+    "\n",
+    "# Define test_inputs, this is where you can change your desired inputs\n",
+    "test_inputs = [1]  # <--- Change this list to provide your test inputs\n",
+    "\n",
+    "# Apply the test inputs automatically when this cell is run\n",
+    "set_test_inputs(test_inputs)\n",
+    "\n",
+    "# Example of how to revert to normal input:\n",
+    "# set_test_inputs(None)\n",
+    "# Or to set new inputs dynamically:\n",
+    "# set_test_inputs([\"new_input_1\", \"new_input_2\"])\n",
+    "\n",
+    "#===\n",
+    "\n",
+    "def setin(*inputs):\n",
+    "    \"\"\"\n",
+    "    A helper function to set test inputs for the input() function.\n",
+    "    Usage:\n",
+    "    setin(\"input1\", \"input2\", \"input3\")\n",
+    "    This will set up the input() function to return \"input1\" on the first call,\n",
+    "    \"input2\" on the second call, and so on.\n",
+    "    To reset to normal input behavior, call setin() with no arguments or None:\n",
+    "    setin()\n",
+    "    \"\"\"\n",
+    "    if inputs:\n",
+    "        input_iter = iter(inputs)\n",
+    "        def mock_input(prompt=\"\"):\n",
+    "            try:\n",
+    "                value = next(input_iter)\n",
+    "                print(f\"{prompt}{value}\")\n",
+    "                return value\n",
+    "            except StopIteration:\n",
+    "                raise EOFError(\"No more inputs for testing\")\n",
+    "        builtins.input = mock_input\n",
+    "    else:\n",
+    "        builtins.input = builtins._original_input_backup"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "e31998e1",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'1'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'2'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "3\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'3'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "setin(\"1\",\"2\",\"3\")  # Example usage, you can change the input value as needed\n",
+    "input()\n",
+    "input()\n",
+    "input()\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8b5025b7",
+   "metadata": {},
+   "source": [
+    "### ---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "ddf1af95",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ==== Notebook cheat sheet ====\n",
+    "\n",
+    "## 1) Pure Python (portable)\n",
+    "# import os\n",
+    "# os.listdir(\".\")\n",
+    "# os.mkdir(\"new_folder\")\n",
+    "# os.remove(\"file.py\")\n",
+    "# os.rmdir(\"empty_folder\")   # folder must be empty\n",
+    "\n",
+    "## 2) Shell / terminal style\n",
+    "# !ls\n",
+    "# !python file.py\n",
+    "# !rm file.py\n",
+    "# !rm -r foldername\n",
+    "\n",
+    "## 3) Cell magics\n",
+    "# %%writefile file.py\n",
+    "# print(\"hello from notebook\")\n",
+    "#\n",
+    "# %time some_function()\n",
+    "# %%time\n",
+    "# long_running_code()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "255f6b2e",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing my_file.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile my_file.py\n",
+    "print(\"hello\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "0979b8d8",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "hello\n"
+     ]
+    }
+   ],
+   "source": [
+    "!python my_file.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "6ed36a67",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing ball.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile ball.py\n",
+    "x = 10\n",
+    "y = 20\n",
+    "print(x + y)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "dc36428b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "30\n"
+     ]
+    }
+   ],
+   "source": [
+    "!python ball.py\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "9f0b9475",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['ball.py', 'my_file.py', 'yEEESSSSss2.ipynb', 'my_dir']"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# how make dir\n",
+    "import os\n",
+    "os.mkdir(\"my_dir\")\n",
+    "os.listdir(\".\")\n",
+    "os.rmdir(\"my_dir\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "319f5f65",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      ".\n",
+      "./ball.py\n",
+      "./my_file.py\n",
+      "./yEEESSSSss2.ipynb\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'.\\n./ball.py\\n./my_file.py\\n./yEEESSSSss.ipynb'"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "!find . -maxdepth 1\n",
+    "\n",
+    "'''.\n",
+    "./ball.py\n",
+    "./my_file.py\n",
+    "./yEEESSSSss.ipynb'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "c3444a6a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "!rm ball.py\n",
+    "!rm my_file.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "18ecd809",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'----------------------'"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\"----------------------\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "00a2fd4c",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "2b826b1e",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing file_.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile file_.py\n",
+    "print(\"This is a test file for running in the notebook.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "d2414a1a",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "file_.py  yEEESSSSss2.ipynb\n",
+      "/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n",
+      "This is a test file for running in the notebook.\n"
+     ]
+    }
+   ],
+   "source": [
+    "!ls          # list files in current folder (like `dir` on Windows)\n",
+    "!pwd         # show where this notebook is running\n",
+    "!python file_.py  # run a Python script"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "7380abce",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing my_script.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile my_script.py\n",
+    "print(\"hello from file\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "418f7ac5",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "20f623b7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'-----------------------'"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\"-----------------------\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "86de86cc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def my_function():\n",
+    "    print(\"This is a test function.\")\n",
+    "pass"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "fd19e698",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test function.\n",
+      "CPU times: user 790 Î¼s, sys: 212 Î¼s, total: 1 ms\n",
+      "Wall time: 4.87 ms\n"
+     ]
+    }
+   ],
+   "source": [
+    "%time my_function()        # time one expression"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "015a5f5d",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "CPU times: user 3 Î¼s, sys: 1 Î¼s, total: 4 Î¼s\n",
+      "Wall time: 8.11 Î¼s\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%time\n",
+    "# time the whole cell\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "d35ae19f",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "hello from file\n"
+     ]
+    }
+   ],
+   "source": [
+    "%run my_script.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "0e0628ea",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "from IPython.core.interactiveshell import InteractiveShell\n",
+      "InteractiveShell.ast_node_interactivity = \"all\"\n",
+      "import builtins\n",
+      "\n",
+      "# Store the original input function once, globally, to avoid re-capturing a mocked input\n",
+      "if not hasattr(builtins, '_original_input_backup'):\n",
+      "    builtins._original_input_backup = builtins.input\n",
+      "\n",
+      "def set_test_inputs(inputs_list):\n",
+      "    \"\"\"\n",
+      "    Sets up a mock input function that draws from a list of inputs.\n",
+      "    If inputs_list is None or empty, restores the original input function.\n",
+      "    \"\"\"\n",
+      "    if inputs_list:\n",
+      "        input_iter = iter(inputs_list)\n",
+      "        def mock_input(prompt=\"\"):\n",
+      "            try:\n",
+      "                value = next(input_iter)\n",
+      "                print(f\"{prompt}{value}\")\n",
+      "                return value\n",
+      "            except StopIter •G V   “ GÎ$startProgress   z[14553,{"location":10,"title":"","source":{"label":"Pylance","id":"ms-python.vscode-pylance"}},"ms-python.vscode-pylance"] •H V   M GÏ$progressReport   3[14553,{"message":"0 files and 1 cell to analyze"}] •I V    GÐ$progressEnd   [14553] R: 
+ã¿   “ f2$startProgress   z[20380,{"location":10,"title":"","source":{"label":"Pylance","id":"ms-python.vscode-pylance"}},"ms-python.vscode-pylance"] R; 
+ã¿   M f3$progressReport   3[20380,{"message":"0 files and 1 cell to analyze"}] R< 
+ã¿    f4$progressEnd   [20380] R= 
+ã¿  Ø f5$changeMany  Â["Pylance6",[[{"$mid":1,"fsPath":"/workspaces/cs2520-study/zybooks notebooks/c9.ipynb","external":"vscode-notebook-cell://codespaces%2Bfluffy-telegram-jj566wr4r565cp796/workspaces/cs2520-study/zybooks%20notebooks/c9.ipynb#Y155sdnNjb2RlLXJlbW90ZQ%3D%3D","path":"/workspaces/cs2520-study/zybooks notebooks/c9.ipynb","scheme":"vscode-notebook-cell","authority":"codespaces+fluffy-telegram-jj566wr4r565cp796","fragment":"Y155sdnNjb2RlLXJlbW90ZQ=="},[]]]] R> 
+ã¿   4 f6
+$fireCommandActivationEvent   ["setContext"] R? 
+ã¿   O f7
+$executeCommand   5["_setContext",["pythonDepsNotInstalled",false],true] Ôi ©J   “ ¿J$startProgress   z[21915,{"location":10,"title":"","source":{"label":"Pylance","id":"ms-python.vscode-pylance"}},"ms-python.vscode-pylance"] Ôj ©J   M ¿K$progressReport   3[21915,{"message":"0 files and 1 cell to analyze"}] Ôk ©J    ¿L$progressEnd   [21915] Ôl ©J  À ¿M$changeMany  ª["Pylance6",[[{"$mid":1,"fsPath":"/workspaces/cs2520-study/_helpers/zname.ipynb","external":"vscode-notebook-cell://codespaces%2Bfluffy-telegram-jj566wr4r565cp796/workspaces/cs2520-study/_helpers/zname.ipynb#W2sdnNjb2RlLXJlbW90ZQ%3D%3D","path":"/workspaces/cs2520-study/_helpers/zname.ipynb","scheme":"vscode-notebook-cell","authority":"codespaces+fluffy-telegram-jj566wr4r565cp796","fragment":"W2sdnNjb2RlLXJlbW90ZQ=="},[]]]] Ôm ©J   4 ¿N
+$fireCommandActivationEvent   ["setContext"] Ôn ©J   O ¿O
+$executeCommand   5["_setContext",["pythonDepsNotInstalled",false],true] Ôo ©J   “ ¿P$startProgress   z[21916,{"location":10,"title":"","source":{"label":"Pylance","id":"ms-python.vscode-pylance"}},"ms-python.vscode-pylance"] Ôp ©J   M ¿Q$progressReport   3[21916,{"message":"0 files and 1 cell to analyze"}] Ôq ©J    ¿R$progressEnd   [21916] Ôr ©J  À ¿S$changeMany  ª["Pylance6",[[{"$mid":1,"fsPath":"/workspaces/cs2520-study/_helpers/zname.ipynb","external":"vscode-notebook-cell://codespaces%2Bfluffy-telegram-jj566wr4r565cp796/workspaces/cs2520-study/_helpers/zname.ipynb#W3sdnNjb2RlLXJlbW90ZQ%3D%3D","path":"/workspaces/cs2520-study/_helpers/zname.ipynb","scheme":"vscode-notebook-cell","authority":"codespaces+fluffy-telegram-jj566wr4r565cp796","fragment":"W3sdnNjb2RlLXJlbW90ZQ=="},[]]]] Ôs ©J   4 ¿T
+$fireCommandActivationEvent   ["setContext"] Ôt ©J   O ¿U
+$executeCommand   5["_setContext",["pythonDepsNotInstalled",false],true]ation:\n",
+      "                raise EOFError(\"No more inputs for testing\")\n",
+      "        builtins.input = mock_input\n",
+      "    else:\n",
+      "        builtins.input = builtins._original_input_backup\n",
+      "\n",
+      "# Define test_inputs, this is where you can change your desired inputs\n",
+      "test_inputs = [1]  # <--- Change this list to provide your test inputs\n",
+      "\n",
+      "# Apply the test inputs automatically when this cell is run\n",
+      "set_test_inputs(test_inputs)\n",
+      "\n",
+      "# Example of how to revert to normal input:\n",
+      "# set_test_inputs(None)\n",
+      "# Or to set new inputs dynamically:\n",
+      "# set_test_inputs([\"new_input_1\", \"new_input_2\"])\n",
+      "\n",
+      "#===\n",
+      "\n",
+      "def setin(*inputs):\n",
+      "    \"\"\"\n",
+      "    A helper function to set test inputs for the input() function.\n",
+      "    Usage:\n",
+      "    setin(\"input1\", \"input2\", \"input3\")\n",
+      "    This will set up the input() function to return \"input1\" on the first call,\n",
+      "    \"input2\" on the second call, and so on.\n",
+      "    To reset to normal input behavior, call setin() with no arguments or None:\n",
+      "    setin()\n",
+      "    \"\"\"\n",
+      "    if inputs:\n",
+      "        input_iter = iter(inputs)\n",
+      "        def mock_input(prompt=\"\"):\n",
+      "            try:\n",
+      "                value = next(input_iter)\n",
+      "                print(f\"{prompt}{value}\")\n",
+      "                return value\n",
+      "            except StopIteration:\n",
+      "                raise EOFError(\"No more inputs for testing\")\n",
+      "        builtins.input = mock_input\n",
+      "    else:\n",
+      "        builtins.input = builtins._original_input_backup\n",
+      "setin(\"1\",\"2\",\"3\")  # Example usage, you can change the input value as needed\n",
+      "input()\n",
+      "input()\n",
+      "input()\n",
+      "%%writefile my_file.py\n",
+      "print(\"hello\")\n",
+      "!python my_file.py\n",
+      "%%writefile ball.py\n",
+      "x = 10\n",
+      "y = 20\n",
+      "print(x + y)\n",
+      "!python ball.py\n",
+      "# how make dir\n",
+      "import os\n",
+      "os.mkdir(\"my_dir\")\n",
+      "os.listdir(\".\")\n",
+      "os.rmdir(\"my_dir\")\n",
+      "!find . -maxdepth 1\n",
+      "\n",
+      "'''.\n",
+      "./ball.py\n",
+      "./my_file.py\n",
+      "./yEEESSSSss.ipynb'''\n",
+      "!rm ball.py\n",
+      "!rm my_file.py\n",
+      "\"----------------------\"\n",
+      "%%writefile file_.py\n",
+      "print(\"This is a test file for running in the notebook.\")\n",
+      "!ls          # list files in current folder (like `dir` on Windows)\n",
+      "!pwd         # show where this notebook is running\n",
+      "!python file_.py  # run a Python script\n",
+      "%%writefile my_script.py\n",
+      "print(\"hello from file\")\n",
+      "\"-----------------------\"\n",
+      "def my_function():\n",
+      "    print(\"This is a test function.\")\n",
+      "pass\n",
+      "%time my_function()        # time one expression\n",
+      "%%time\n",
+      "# time the whole cell\n",
+      "%run my_script.py\n",
+      "%history\n"
+     ]
+    }
+   ],
+   "source": [
+    "%history"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "9e44c479",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two'"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[Errno 2] No such file or directory: '.. # change directory'\n",
+      "/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n"
+     ]
+    }
+   ],
+   "source": [
+    "%pwd      # print current directory\n",
+    "%cd ..    # change directory"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "772b0782",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "yEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "%rm my_script.py\n",
+    "%rm file_.py\n",
+    "%ls"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ec5d2e9a",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "d34e2ef4",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "listing files\n",
+      "yEEESSSSss2.ipynb\n",
+      "total 20\n",
+      "-rw-rw-rw- 1 codespace codespace 17685 Apr 24 02:41 yEEESSSSss2.ipynb\n",
+      "total 28\n",
+      "drwxrwxrwx+ 2 codespace codespace  4096 Apr 24 02:41 ./\n",
+      "drwxrwxrwx+ 5 codespace codespace  4096 Apr 24 02:38 ../\n",
+      "-rw-rw-rw-  1 codespace codespace 17685 Apr 24 02:41 yEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "echo \"listing files\"\n",
+    "ls\n",
+    "ls -l\n",
+    "ls -alF"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c53183cb",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d2a0a236",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\"---------------------------------------------------\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ac7f18c0",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b86d9152",
+   "metadata": {},
+   "source": [
+    "### ---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "id": "870e9e92",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "''"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#################\n",
+    "_=\"\"\n",
+    "#################\n",
+    "_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "id": "60a89940",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "''"
+      ]
+     },
+     "execution_count": 37,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# hello,i wanna know how to use jupiter cell magic ! %%\n",
+    "_\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "id": "41b435d7",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Overwriting test_magic.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile test_magic.py\n",
+    "print(\"This is a test for Jupyter cell magic.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "id": "0c3531b6",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Overwriting setup.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile setup.py\n",
+    "import os\n",
+    "from setuptools import setup, find_packages\n",
+    "setup(\n",
+    "    name='my_package',\n",
+    "    version='0.1',\n",
+    "    packages=find_packages(),\n",
+    "    install_requires=[\n",
+    "        # List your package dependencies here\n",
+    "    ],\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "id": "060aaad8",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "echo \"This is a test for Jupyter cell magic.\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c1661518",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "'''%%writefile setup.py\n",
+    "import os\n",
+    "from setuptools import setup, find_packages\n",
+    "setup(\n",
+    "    name='my_package',\n",
+    "    version='0.1',\n",
+    "    packages=find_packages(),\n",
+    "    install_requires=[\n",
+    "        # List your package dependencies here\n",
+    "    ],\n",
+    ")'''\n",
+    "#how? do i list package dependencies?\n",
+    "# you can list your package dependencies in the `install_requires` parameter of the `setup()` function in your `setup.py` file. For example, if your package depends on `numpy` and `requests`, you would write:\n",
+    "# install_requires=[\n",
+    "#     'numpy',\n",
+    "#     'requests',\n",
+    "# ],\n",
+    "\n",
+    "#oh!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "id": "440f9bfb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "!rm setup.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "id": "48db36d3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Overwriting setup.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile setup.py\n",
+    "import os\n",
+    "from setuptools import setup, find_packages\n",
+    "setup(\n",
+    "    name='my_package',\n",
+    "    version='0.1',\n",
+    "    packages=find_packages(),\n",
+    "    install_requires=[\n",
+    "        'numpy',\n",
+    "        'requests',\n",
+    "    ],\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "id": "fe8df3b1",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "setup.py  test_magic.py  yEEESSSSss2.ipynb\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "1"
+      ]
+     },
+     "execution_count": 54,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\u001b[0m\u001b[34;42m.\u001b[0m/  \u001b[34;42m..\u001b[0m/  setup.py  test_magic.py  yEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "%ls\n",
+    "1\n",
+    "%ls -a"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "id": "e57dbab3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "setup.py  test_magic.py  yEEESSSSss2.ipynb\n",
+      ".  ..  setup.py  test_magic.py\tyEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "!ls\n",
+    "!ls -a"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "id": "f958a50f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# can you see my output?\n",
+    "# no, i cannot see your output, because you have not run the cell that contains the print statement. In Jupyter notebooks, you need to run the cell to execute the code and see the output. Please run the cell with the print statement to see the output."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "id": "2af68d70",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "setup.py  test_magic.py  yEEESSSSss2.ipynb\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      ".  ..  setup.py  test_magic.py\tyEEESSSSss2.ipynb\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "''"
+      ]
+     },
+     "execution_count": 63,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'setup.py  test_magic.py  yEEESSSSss2.ipynb\\n.  ..  setup.py  test_magic.py\\tyEEESSSSss2.ipynb'"
+      ]
+     },
+     "execution_count": 63,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "!ls\n",
+    "!ls -a\n",
+    "_\n",
+    "'''setup.py  test_magic.py  yEEESSSSss2.ipynb\n",
+    ".  ..  setup.py  test_magic.py\tyEEESSSSss2.ipynb'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f319b4b1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#bad idea!!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "id": "e213e1db",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "echo \"This is a test for Jupyter cell magic.\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 69,
+   "id": "4bc0db98",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      ".\n",
+      "./test_magic.py\n",
+      "./setup.py\n",
+      "./yEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "!find . -maxdepth 1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "33084305",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "'''.\n",
+    "./test_magic.py\n",
+    "./setup.py\n",
+    "./yEEESSSSss2.ipynb'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 70,
+   "id": "30e111f9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "! rm test_magic.py\n",
+    "! rm setup.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "id": "dee64cbb",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing temp.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile temp.py\n",
+    "print(\"This is a temporary file.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "id": "824adbaf",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%bash\n",
+    "rm temp.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "id": "bba2294a",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Writing temp.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%writefile temp.py\n",
+    "print(\"This is a temporary file.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 81,
+   "id": "f48b41c9",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "-rw-rw-rw- 1 codespace codespace 0 Apr 24 03:07 temp.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "!rm temp.py\n",
+    "!touch temp.py  # create an empty file named temp.py\n",
+    "!ls -l temp.py\n",
+    "!rm temp.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 82,
+   "id": "12f2c8f7",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "-rw-rw-rw- 1 codespace codespace 0 Apr 24 03:08 ball.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "touch ball.py\n",
+    "ls -l ball.py\n",
+    "rm ball.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "id": "786867d7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "''"
+      ]
+     },
+     "execution_count": 83,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c8387b88",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#okay i think i get it. whats next?\n",
+    "# next, you can explore more Jupyter cell magics and shell commands to enhance your workflow. For example, you can use `%%timeit` to time the execution of a code block multiple times, or `%%capture` to capture the output of a cell without displaying it. You can also experiment with other shell commands like `mkdir`, `rmdir`, `cp`, and `mv` to manage files and directories directly from your notebook."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "id": "349b8bfd",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "7.6 ns Â± 2.47 ns per loop (mean Â± std. dev. of 7 runs, 100,000,000 loops each)\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%timeit\n",
+    "1+1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "id": "674bdba3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture captured_output\n",
+    "print(\"This output will be captured and not displayed.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 97,
+   "id": "4501e516",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This output will be captured and not displayed.\n"
+     ]
+    }
+   ],
+   "source": [
+    "captured_output.show()  # To display the captured output if needed"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 102,
+   "id": "2e236a7c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "\"hi\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 103,
+   "id": "38a961b8",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "UsageError: Cell magic `%%` not found.\n"
+     ]
+    }
+   ],
+   "source": [
+    "# can we be able to import stuff for regular pythons so that if i turn this into a .py file, it can still run?\n",
+    "# Yes, you can use the `%%writefile` magic to write your code into a `.py` file, and then you can run that file using the `!python filename.py`\n",
+    "\n",
+    "#nonono, i mean im gonna copy and paaste this to another ai,is it possible to import notebook magics in?\n",
+    "# Jupyter notebook magics are specific to the Jupyter environment and cannot be directly imported or used in a regular Python script. If you copy and paste code that contains Jupyter magics into a `.py` file, it will not work as expected because those magics are not recognized outside of the Jupyter environment. You would need to remove or replace any Jupyter-specific code with standard Python code for it to run in a regular Python script.\n",
+    "\n",
+    "#even with imports?\n",
+    "# No, even with imports, Jupyter notebook magics cannot be used in a regular Python script. They are designed to work within the Jupyter environment and rely on the IPython kernel to function. If you try to import or use Jupyter magics in a standard Python script, you will encounter errors because those magics are not defined outside of the Jupyter context. You would need to refactor your code to remove any Jupyter-specific features for it to run successfully as a `.py` file.\n",
+    "\n",
+    "#damn"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a69638af",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#how will we do this:\n",
+    "'''%%writefile ball.py\n",
+    "x = 10\n",
+    "y = 20\n",
+    "print(x + y)\n",
+    "'''\n",
+    "# --- IGNORE ---\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 113,
+   "id": "8f0cb0f2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def make_dir(path):\n",
+    "    import os\n",
+    "    os.mkdir(path)\n",
+    "def make_file(filename):\n",
+    "    with open(filename, 'w') as f:\n",
+    "        f.write(\"This is a new file created by make_file function.\")\n",
+    "def run_cmd(*args):\n",
+    "    import subprocess\n",
+    "    result = subprocess.run(args, capture_output=True, text=True)\n",
+    "    print(result.stdout)\n",
+    "def remove_path(path):\n",
+    "    import os\n",
+    "    if os.path.isfile(path):\n",
+    "        os.remove(path)\n",
+    "    elif os.path.isdir(path):\n",
+    "        os.rmdir(path)\n",
+    "def find_files(path, maxdepth=1):\n",
+    "    import os\n",
+    "    for root, dirs, files in os.walk(path):\n",
+    "        depth = root[len(path):].count(os.sep)\n",
+    "        if depth < maxdepth:\n",
+    "            for name in files:\n",
+    "                print(os.path.join(root, name))\n",
+    "            for name in dirs:\n",
+    "                print(os.path.join(root, name))\n",
+    "#make_dir(\"my_new_folder\")\n",
+    "#make_file(\"my_new_file.txt\")\n",
+    "#remove_path(\"my_new_file.txt\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 114,
+   "id": "e6a5f40d",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 116,
+   "id": "1c1806d5",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo')"
+      ]
+     },
+     "execution_count": 116,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo/ball.py')"
+      ]
+     },
+     "execution_count": 116,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "30\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 116,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "make_dir(\"demo\")\n",
+    "make_file(\"demo/ball.py\", \"x=10\\ny=20\\nprint(x+y)\")\n",
+    "run_cmd(\"python\", \"demo/ball.py\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 117,
+   "id": "4ea161bc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# i dont like this :'(. any suggestions?\n",
+    "# You can create a more user-friendly interface by defining a class that encapsulates these operations, or by adding error handling and logging to make it easier to debug. Additionally, you could create a command-line interface (CLI) using libraries like `argparse` or `click` to allow users to interact with these functions more easily from the terminal.\n",
+    "\n",
+    "#brb"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 118,
+   "id": "82602a83",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo')"
+      ]
+     },
+     "execution_count": 118,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "remove_path(\"demo\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 119,
+   "id": "89c9fa62",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Hello, World!\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "def run_cmd(*args):\n",
+    "    import subprocess\n",
+    "    result = subprocess.run(args, capture_output=True, text=True)\n",
+    "    print(result.stdout)\n",
+    "run_cmd(\"echo\", \"Hello, World!\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 146,
+   "id": "a6d734c5",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(None, '\\no\\n\"oh\"\\n')"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'  Cell In[131], line 5\\n    (,\"a\")[1]\\n     ^\\nSyntaxError: invalid syntax'"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'a'"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[(2, 1)]"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['\\nmultiline\\nyea\\n ']"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "'\\n    yes\\n    multiline\\n    '"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(None, '\\n    yes\\n    multiline\\n    ')"
+      ]
+     },
+     "execution_count": 146,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "None,'''\n",
+    "o\n",
+    "\"oh\"\n",
+    "'''\n",
+    "#(,\"a\")[1]\n",
+    "'''  Cell In[131], line 5\n",
+    "    (,\"a\")[1]\n",
+    "     ^\n",
+    "SyntaxError: invalid syntax'''\n",
+    "m=(0,\"a\")\n",
+    "m[1]\n",
+    "[(2,1)]\n",
+    "\n",
+    "[\n",
+    " '''\n",
+    "multiline\n",
+    "yea\n",
+    " '''\n",
+    " ]\n",
+    "\n",
+    "(\n",
+    "    '''\n",
+    "    yes\n",
+    "    multiline\n",
+    "    '''\n",
+    ")\n",
+    "no=None\n",
+    "(no,\n",
+    "    '''\n",
+    "    yes\n",
+    "    multiline\n",
+    "    '''\n",
+    ")\n",
+    "\n",
+    "#this is gonna be abit annoying then!\n",
+    "# You can create a more user-friendly interface by defining a class that encapsulates these operations, or by adding error handling and logging to make it easier to debug. Additionally, you could create a command-line interface (CLI) using libraries like `argparse` or `click` to allow users to interact with these functions more easily from the terminal.\n",
+    "\n",
+    "#show me!\n",
+    "# Here's an example of how you could create a simple CLI using the `argparse` library to interact with the file and directory operations we defined earlier:\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 152,
+   "id": "d5df0e91",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'import argparse\\nimport os\\nimport shutil\\nimport subprocess\\nfrom pathlib import Path\\n\\nclass FileManager:\\n    def __init__(self, root=None):\\n        self.root = Path(root) if root else Path.cwd()\\n\\n    def here(self):\\n        return self.root\\n\\n    def make_dir(self, path):\\n        p = self.root / path\\n        p.mkdir(parents=True, exist_ok=True)\\n        print(f\"Directory created: {p}\")\\n\\n    def make_file(self, path, content=\"\"):\\n        p = self.root / path\\n        p.parent.mkdir(parents=True, exist_ok=True)\\n        p.write_text(content, encoding=\"utf-8\")\\n        print(f\"File created: {p}\")\\n\\n    def remove_path(self, path):\\n        p = self.root / path\\n        if p.is_dir():\\n            shutil.rmtree(p)\\n            print(f\"Directory removed: {p}\")\\n        elif p.exists():\\n            p.unlink()\\n            print(f\"File removed: {p}\")\\n        else:\\n            print(f\"Path does not exist: {p}\")\\n\\n    def run_cmd(self, *cmd):\\n        result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.root)\\n        print(result.stdout)\\n        if result.stderr:\\n            print(result.stderr)\\n        return result.returncode\\ndef main():\\n    parser = argparse.ArgumentParser(description=\"File Manager CLI\")\\n    parser.add_argument(\"command\", choices=[\"make_dir\", \"make_file\", \"remove_path\", \"run_cmd\"], help=\"Command to execute\")\\n    parser.add_argument(\"path\", help=\"Path for the command\")\\n    parser.add_argument(\"--content\", help=\"Content for make_file command\")\\n    args = parser.parse_args()\\n\\n    fm = FileManager()\\n    if args.command == \"make_dir\":\\n        fm.make_dir(args.path)\\n    elif args.command == \"make_file\":\\n        fm.make_file(args.path, content=args.content or \"\")\\n    elif args.command == \"remove_path\":\\n        fm.remove_path(args.path)\\n    elif args.command == \"run_cmd\":\\n        fm.run_cmd(*args.path.split())\\nif __name__ == \"__main__\":\\n    main()\\n'"
+      ]
+     },
+     "execution_count": 152,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "'''import argparse\n",
+    "import os\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "from pathlib import Path\n",
+    "\n",
+    "class FileManager:\n",
+    "    def __init__(self, root=None):\n",
+    "        self.root = Path(root) if root else Path.cwd()\n",
+    "\n",
+    "    def here(self):\n",
+    "        return self.root\n",
+    "\n",
+    "    def make_dir(self, path):\n",
+    "        p = self.root / path\n",
+    "        p.mkdir(parents=True, exist_ok=True)\n",
+    "        print(f\"Directory created: {p}\")\n",
+    "\n",
+    "    def make_file(self, path, content=\"\"):\n",
+    "        p = self.root / path\n",
+    "        p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "        p.write_text(content, encoding=\"utf-8\")\n",
+    "        print(f\"File created: {p}\")\n",
+    "\n",
+    "    def remove_path(self, path):\n",
+    "        p = self.root / path\n",
+    "        if p.is_dir():\n",
+    "            shutil.rmtree(p)\n",
+    "            print(f\"Directory removed: {p}\")\n",
+    "        elif p.exists():\n",
+    "            p.unlink()\n",
+    "            print(f\"File removed: {p}\")\n",
+    "        else:\n",
+    "            print(f\"Path does not exist: {p}\")\n",
+    "\n",
+    "    def run_cmd(self, *cmd):\n",
+    "        result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.root)\n",
+    "        print(result.stdout)\n",
+    "        if result.stderr:\n",
+    "            print(result.stderr)\n",
+    "        return result.returncode\n",
+    "def main():\n",
+    "    parser = argparse.ArgumentParser(description=\"File Manager CLI\")\n",
+    "    parser.add_argument(\"command\", choices=[\"make_dir\", \"make_file\", \"remove_path\", \"run_cmd\"], help=\"Command to execute\")\n",
+    "    parser.add_argument(\"path\", help=\"Path for the command\")\n",
+    "    parser.add_argument(\"--content\", help=\"Content for make_file command\")\n",
+    "    args = parser.parse_args()\n",
+    "\n",
+    "    fm = FileManager()\n",
+    "    if args.command == \"make_dir\":\n",
+    "        fm.make_dir(args.path)\n",
+    "    elif args.command == \"make_file\":\n",
+    "        fm.make_file(args.path, content=args.content or \"\")\n",
+    "    elif args.command == \"remove_path\":\n",
+    "        fm.remove_path(args.path)\n",
+    "    elif args.command == \"run_cmd\":\n",
+    "        fm.run_cmd(*args.path.split())\n",
+    "if __name__ == \"__main__\":\n",
+    "    main()\n",
+    "'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 163,
+   "id": "512b31d9",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n",
+      "Hello, World!\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "total 56\n",
+      "drwxrwxrwx+ 2 codespace codespace  4096 Apr 24 03:39 ./\n",
+      "drwxrwxrwx+ 5 codespace codespace  4096 Apr 24 02:38 ../\n",
+      "-rw-rw-rw-  1 codespace codespace 48032 Apr 24 04:02 yEEESSSSss2.ipynb\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "total 56\n",
+      "drwxrwxrwx+ 2 codespace codespace  4096 Apr 24 03:39 ./\n",
+      "drwxrwxrwx+ 5 codespace codespace  4096 Apr 24 02:38 ../\n",
+      "-rw-rw-rw-  1 codespace codespace 48032 Apr 24 04:02 yEEESSSSss2.ipynb\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Hello again!\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "    1\n",
+      "    2\n",
+      "    3\n",
+      "    \n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.1\n",
+      "2\n",
+      "3\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")\n",
+    "run_cmd(\"echo\", \"Hello, World!\")\n",
+    "run_cmd(\"ls\", \"-alF\")\n",
+    "run_cmd(\"ls\", \"-alF\")\n",
+    "\n",
+    "run_cmd('''echo''', '''Hello again!''')\n",
+    "\n",
+    "run_cmd(\n",
+    "    \"echo\",\n",
+    "    '''\n",
+    "    1\n",
+    "    2\n",
+    "    3\n",
+    "    '''\n",
+    ")\n",
+    "run_cmd(\"echo\", \"This is a test for Jupyter cell magic.1\\n2\\n3\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 170,
+   "id": "9d97b77c",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a self-referencing value.\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "\"\\n\\n:::\\nmultiline\\nmultiline\\nyes\\n\\n:::.a\\n#where : is a ' and .a is the attribute access to get the string in between\\n\""
+      ]
+     },
+     "execution_count": 170,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a self-referencing value.\n"
+     ]
+    }
+   ],
+   "source": [
+    "# any way we can do \"a\".a and get it into a? will it be too hard?\n",
+    "# You can achieve this by defining a custom class that allows attribute access to its own attributes. Here's an example of how you can implement this:\n",
+    "class SelfReferencing:\n",
+    "    def __init__(self, value):\n",
+    "        self.value = value\n",
+    "    def __getattr__(self, name):\n",
+    "        if name == 'a':\n",
+    "            return self.value\n",
+    "        raise AttributeError(f\"'SelfReferencing' object has no attribute '{name}'\")\n",
+    "s = SelfReferencing(\"This is a self-referencing value.\")\n",
+    "print(s.a)  # This will print: This is a self-referencing value.\n",
+    "\n",
+    "#nooo,\n",
+    "\n",
+    "'''\n",
+    "\n",
+    ":::\n",
+    "multiline\n",
+    "multiline\n",
+    "yes\n",
+    "\n",
+    ":::.a\n",
+    "#where : is a ' and .a is the attribute access to get the string in between\n",
+    "'''\n",
+    "\n",
+    "# You can achieve this by defining a custom class that allows attribute access to its own attributes. Here's an example of how you can implement this:\n",
+    "class SelfReferencing:\n",
+    "    def __init__(self, value):\n",
+    "        self.value = value\n",
+    "    def __getattr__(self, name):\n",
+    "        if name == 'a':\n",
+    "            return self.value\n",
+    "        raise AttributeError(f\"'SelfReferencing' object has no attribute '{name}'\")\n",
+    "s = SelfReferencing(\"This is a self-referencing value.\")\n",
+    "print(s.a)  # This will print: This is a self-referencing value.  \n",
+    "\n",
+    "\n",
+    "#nvm"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6ddc30d5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")\n",
+    "\n",
+    "#you know,I have an Idea. we have setin(), do you think setvar() would be to crazy?\n",
+    "# You can create a `setvar()` function that allows you to set variables in the global scope. Here's an example of how you can implement this:\n",
+    "def setvar(name, value):\n",
+    "    globals()[name] = value\n",
+    "#i see! leme look hold on\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 172,
+   "id": "414fc0f9",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "echo \"This is a test for Jupyter cell magic.\"\n",
+    "touch ball.py\n",
+    "rm ball.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "fea94e88",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#how do we write ball.py in bash?\n",
+    "# You can write to a file in bash using the `echo` command with redirection. For example, to write the contents of `ball.py`, you can use:\n",
+    "\"\"\"echo -e \"x=10\\ny=20\\nprint(x+y)\" > ball.py\"\"\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 174,
+   "id": "07e8427d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "setin(\"1\",\"2\",\"3\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 188,
+   "id": "ff38ba81",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "-rw-rw-rw- 1 codespace codespace 21 Apr 24 04:24 ball.py\n",
+      "30\n",
+      ".\n",
+      "./ball.py\n",
+      "./yEEESSSSss2.ipynb\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%bash\n",
+    "touch ball.py\n",
+    "cat > ball.py << 'EOF_'\n",
+    "x=10\n",
+    "y=20\n",
+    "print(x+y)\n",
+    "EOF_\n",
+    "ls -l ball.py\n",
+    "python3 ball.py\n",
+    "find . -maxdepth 1\n",
+    "rm ball.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 190,
+   "id": "a125dc71",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'%%bash\\nfunction my_func() {\\n    echo \"This is a bash function.\"\\n}\\nexport -f my_func\\nmy_func\\n'"
+      ]
+     },
+     "execution_count": 190,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#can we define bash functions in jupyter and use them in %%bash?\n",
+    "# You cannot directly define bash functions in a Jupyter notebook and use them in `%%bash` cells, because each `%%bash` cell runs in a separate shell instance. However, you can define a bash function in a `%%bash` cell and then export it to be available in subsequent `%%bash` cells. Here's how you can do it:\n",
+    "'''%%bash\n",
+    "function my_func() {\n",
+    "    echo \"This is a bash function.\"\n",
+    "}\n",
+    "export -f my_func\n",
+    "my_func\n",
+    "'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 195,
+   "id": "e577ca33",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "class MyClass:\n",
+      "    def __init__(self):\n",
+      "        self.x = 0\n",
+      "        self.y = 0\n",
+      "\n",
+      "    def add(self):\n",
+      "        return self.x + self.y\n",
+      "    def add1(self,  some):\n",
+      "        return some.x + some.y\n",
+      "a=MyClass()\n",
+      "a.x = 5\n",
+      "a.y = 10\n",
+      "print(a.add())  # Output: 15\n"
+     ]
+    }
+   ],
+   "source": [
+    "ohokay='''class MyClass:\n",
+    "    def __init__(self):\n",
+    "        self.x = 0\n",
+    "        self.y = 0\n",
+    "\n",
+    "    def add(self):\n",
+    "        return self.x + self.y\n",
+    "    def add1(self,  some):\n",
+    "        return some.x + some.y\n",
+    "a=MyClass()\n",
+    "a.x = 5\n",
+    "a.y = 10\n",
+    "print(a.add())  # Output: 15'''\n",
+    "print(ohokay)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a28f2bd8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#how can we save\n",
+    "'''from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")'''\n",
+    "#to something i dont wanna be pasting it over and over agian lol\n",
+    "# You can save this code in a Python file (e.g., `file_manager.py`) and then import the functions from that file whenever you need to use them. Here's how you can do it:\n",
+    "# 1. Save the code in a file named `file_manager.py`.\n",
+    "# 2. In your Jupyter notebook or another Python script, you can import the functions like this:\n",
+    "# from file_manager import here, make_dir, make_file, remove_path, run_cmd\n",
+    "# Now you can use the imported functions in your notebook or script without having to copy and paste the code every time.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 202,
+   "id": "f5bf2eaf",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 210,
+   "id": "451b75d3",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two'"
+      ]
+     },
+     "execution_count": 210,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#from file_manager import *\n",
+    "'''Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two'''"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e1ebd03d",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo/ohokay.py')"
+      ]
+     },
+     "execution_count": 201,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "15\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 201,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#from file_manager import *\n",
+    "ohokay='''class MyClass:\n",
+    "    def __init__(self):\n",
+    "        self.x = 0\n",
+    "        self.y = 0\n",
+    "\n",
+    "    def add(self):\n",
+    "        return self.x + self.y\n",
+    "    def add1(self,  some):\n",
+    "        return some.x + some.y\n",
+    "a=MyClass()\n",
+    "a.x = 5\n",
+    "a.y = 10\n",
+    "print(a.add())  # Output: 15'''\n",
+    "make_file(\"demo/ohokay.py\", ohokay)\n",
+    "run_cmd(\"python\", \"demo/ohokay.py\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 207,
+   "id": "92b4a312",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/file_manager.py')"
+      ]
+     },
+     "execution_count": 207,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "ohokay=r'''from pathlib import Path\n",
+    "import shutil\n",
+    "import subprocess\n",
+    "\n",
+    "ROOT = Path.cwd()\n",
+    "\n",
+    "def here():\n",
+    "    return ROOT\n",
+    "\n",
+    "def make_dir(path):\n",
+    "    p = ROOT / path\n",
+    "    p.mkdir(parents=True, exist_ok=True)\n",
+    "    return p\n",
+    "\n",
+    "def make_file(path, content=\"\"):\n",
+    "    p = ROOT / path\n",
+    "    p.parent.mkdir(parents=True, exist_ok=True)\n",
+    "    p.write_text(content, encoding=\"utf-8\")\n",
+    "    return p\n",
+    "\n",
+    "def remove_path(path):\n",
+    "    p = ROOT / path\n",
+    "    if p.is_dir():\n",
+    "        shutil.rmtree(p)\n",
+    "    elif p.exists():\n",
+    "        p.unlink()\n",
+    "    return p\n",
+    "\n",
+    "def run_cmd(*cmd):\n",
+    "    result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)\n",
+    "    print(result.stdout)\n",
+    "    if result.stderr:\n",
+    "        print(result.stderr)\n",
+    "    return result.returncode\n",
+    "\n",
+    "print(\"Current working directory:\", here())\n",
+    "\n",
+    "# Examples:\n",
+    "# make_dir(\"demo/subfolder\")\n",
+    "# make_file(\"demo/subfolder/hello.txt\", \"hello from notebook\\nHey.\")\n",
+    "# run_cmd(\"find\", \"demo\", \"-maxdepth\", \"3\")\n",
+    "# remove_path(\"demo\")'''\n",
+    "\n",
+    "#i need to \\n but the \\n is being read as a newline in the string, how can i make it so that it is read as \\n instead of a newline?\n",
+    "# You can use a raw string by prefixing the string with `r`, which will treat backslashes as literal characters. For example:\n",
+    "#ohokay=r'''from pathlib import Path\"\n",
+    "\n",
+    "make_file(\"file_manager.py\", ohokay)\n",
+    "del ohokay\n",
+    "#mkay"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 229,
+   "id": "b8574eed",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo/ohokay.py')"
+      ]
+     },
+     "execution_count": 229,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "15\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 229,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "PosixPath('/workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two/demo/ohokay.py')"
+      ]
+     },
+     "execution_count": 229,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from file_manager import *\n",
+    "ohokay='''class MyClass:\n",
+    "    def __init__(self):\n",
+    "        self.x = 0\n",
+    "        self.y = 0\n",
+    "    def add(self):\n",
+    "        return self.x + self.y\n",
+    "    def add1(self,  some):\n",
+    "        return some.x + some.y\n",
+    "a=MyClass()\n",
+    "a.x = 5\n",
+    "a.y = 10\n",
+    "print(a.add())  # Output: 15'''\n",
+    "make_file(\"demo/ohokay.py\", ohokay)\n",
+    "run_cmd(\"python\", \"demo/ohokay.py\")\n",
+    "remove_path(\"demo/ohokay.py\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "28780a63",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# how am i gonna do my notebooks then? sine now they are all three d\n",
+    "# You can save your notebooks as `.ipynb` files, which are JSON files that contain the code, markdown, and outputs of your notebook. When you want to share or run your notebooks, you can use Jupyter Notebook or Jupyter Lab to open and execute them. If you want to convert your notebooks to Python scripts, you can use the `nbconvert` tool that comes with Jupyter. For example, you can run the following command in your terminal to convert a notebook to a Python script:\n",
+    "# jupyter nbconvert --to script your_notebook.ipynb\n",
+    "# This will create a `.py` file with the same name as your notebook, which you can then run as a regular Python script. Keep in mind that any Jupyter-specific features (like magics) will not work in the converted script, so you may need to refactor your code to remove those features if you want it to run successfully as a `.py` file."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 215,
+   "id": "98051ff7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "('yes', 'yes')"
+      ]
+     },
+     "execution_count": 215,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\"yes\",\"yes\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "81ffccf3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Current working directory: /workspaces/cs2520-study/UnOrdered/METESTINGFOLDER_4_23_2026 two\n",
+      "Hello, World!\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 252,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n",
+      "1\n",
+      "2\n",
+      "3\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 252,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n",
+      "1\n",
+      "2\n",
+      "3\n",
+      "\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 252,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is a test for Jupyter cell magic.\n",
+      "1\n",
+      "2\n",
+      "3\n",
+      "\n"
+     ]
+    },
