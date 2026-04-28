@@ -1,2 +1,2 @@
 def fct():
-    return "Hello from test.py!"
+        return "Hello from test.py!"
