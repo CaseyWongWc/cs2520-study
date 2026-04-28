@@ -1,2 +1,2 @@
-def calculate(number):
-    return number * 5
+    def calculate(number):
+        return number * 5
