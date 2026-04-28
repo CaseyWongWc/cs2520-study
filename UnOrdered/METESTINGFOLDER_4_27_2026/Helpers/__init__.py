@@ -31,12 +31,6 @@ test_inputs = [1]  # <--- Change this list to provide your test inputs
 # Apply the test inputs automatically when this cell is run
 set_test_inputs(test_inputs)
 
-# Example of how to revert to normal input:
-# set_test_inputs(None)
-# Or to set new inputs dynamically:
-# set_test_inputs(["new_input_1", "new_input_2"])
-
-#===
 def setin(*inputs):
     """
     A helper function to set test inputs for the input() function.
