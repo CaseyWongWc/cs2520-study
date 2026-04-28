@@ -1,4 +1,5 @@
-def setin(*inputs):
+import builtins
+              def setin(*inputs):
     """
     A helper function to set test inputs for the input() function.
     Usage:
