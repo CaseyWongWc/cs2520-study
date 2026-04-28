@@ -1,4 +1,4 @@
-from hashlib import md5, sha1
+from hashlib import md5, sha1, sha224
 text = input("Enter text to hash (\"q\" to quit): ")
 algorithm = input("\nEnter algorithm (md5/sha1/sha224): ")
 if algorithm == "md5":
