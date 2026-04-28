@@ -1,5 +1,9 @@
+
+from IPython.core.interactiveshell import InteractiveShell
+InteractiveShell.ast_node_interactivity = "all"
+
 import builtins
-              def setin(*inputs):
+def setin(*inputs):
     """
     A helper function to set test inputs for the input() function.
     Usage:
@@ -21,3 +25,4 @@ import builtins
         builtins.input = mock_input
     else:
         builtins.input = builtins._original_input_backup
+              
