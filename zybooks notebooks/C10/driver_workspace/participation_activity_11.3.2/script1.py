@@ -1,4 +1,6 @@
 import my_funcs
 a = 5
-print(f"a! = {factorial(a)}")
-print(f"a^2 = {squared(a)}")
+
+print(f"a! = {my_funcs.factorial(a)}")
+
+print(f"a^2 = {my_funcs.squared(a)}")
