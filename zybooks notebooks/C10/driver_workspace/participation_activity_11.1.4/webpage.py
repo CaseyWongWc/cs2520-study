@@ -1,0 +1,3 @@
+def disp(ip):
+    print(f"Displaying webpage for IP: {ip}")
+# ...
