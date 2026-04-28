@@ -1,9 +1,7 @@
 
+import builtins
 from IPython.core.interactiveshell import InteractiveShell
 InteractiveShell.ast_node_interactivity = "all"
-
-
-import builtins
 
 # Store the original input function once, globally, to avoid re-capturing a mocked input
 if not hasattr(builtins, '_original_input_backup'):
@@ -39,7 +37,6 @@ set_test_inputs(test_inputs)
 # set_test_inputs(["new_input_1", "new_input_2"])
 
 #===
-import builtins
 def setin(*inputs):
     """
     A helper function to set test inputs for the input() function.
