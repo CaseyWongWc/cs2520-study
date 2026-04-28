@@ -1,0 +1,1 @@
+search_list = ["Del", "Noa", "Ada"]
