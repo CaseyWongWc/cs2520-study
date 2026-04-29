@@ -2,7 +2,7 @@
 import random
 
 def number_guess(num):
-    rand_num = random.randint(1, 100)
+    rand_num = random.randint(1, 5)
 
     if num < rand_num:
         print(f"{num} is too low. Random number was {rand_num}.")
