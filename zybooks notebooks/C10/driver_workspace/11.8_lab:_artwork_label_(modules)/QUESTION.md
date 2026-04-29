@@ -1,72 +1,146 @@
-## 11.9 LAB: Guess the random number
-### LAB ACTIVITY: LAB: Guess the random number
-Given the code that reads a list of integers, complete the number_guess() function, which should choose a random number between 1 and 100 by calling random.randint() and then output if the guessed number is too low, too high, or correct.
-Import the `random` module to use the random.seed() and random.randint() functions.
-- random.seed(*seed_value*) seeds the random number generator using the given *seed_value*.- random.randint(*a*, *b*) returns a random number between *a* and *b* (inclusive).For testing purposes, use the seed value 900, which will cause the computer to choose the same random number every time the program runs.
+## 11.8 LAB: Artwork label (modules)
+### LAB ACTIVITY: LAB: Artwork label (modules)
+Define the `Artist` class in Artist.py with a constructor to initialize an artist's information. The constructor should by default initialize the artist's name to "unknown" and the years of birth and death to -1.
+Define the `Artwork` class in Artwork.py with a constructor to initialize an artwork's information. The constructor should by default initialize the title to "unknown", the year created to -1, and the artist to use the `Artist` default constructor parameter values. Add an import statement to import the `Artist` class.
+Add import statements to main.py to import the `Artist` and `Artwork` classes.
 Ex: If the input is:
 ```
-32 45 48 80
+Pablo Picasso
+1881
+1973
+Three Musicians
+1921
 ```
 the output is:
 ```
-32 is too low. Random number was 80.
-45 is too high. Random number was 30.
-48 is correct!
-80 is too low. Random number was 97.
+Artist: Pablo Picasso (1881 to 1973)
+Title: Three Musicians, 1921
+```
+Ex: If the input is:
+```
+Brice Marden
+1938
+-1
+Distant Muses
+2000
+```
+the output is:
+```
+Artist: Brice Marden (1938 to present)
+Title: Distant Muses, 2000
+```
+Ex: If the input is:
+```
+Banksy
+-1
+-1
+Balloon Girl
+2002
+```
+the output is:
+```
+Artist: Banksy (unknown)
+Title: Balloon Girl, 2002
 ```
 **Test Cases:**
 | # | Input | Expected Output | Points |
 |---|-------|-----------------|--------|
-| 1 | `32 45 48 80
-` | `32 is too low. Random number was 80.
-45 is too high. Random number was 30.
-48 is correct!
-80 is too low. Random number was 97.` | 2 |
-| 2 | `80 50 20 60 90 30
-` | `80 is correct!
-50 is too high. Random number was 30.
-20 is too low. Random number was 48.
-60 is too low. Random number was 97.
-90 is too high. Random number was 13.
-30 is too low. Random number was 85.` | 2 |
-| 3 | `20 30
-` | `20 is too low. Random number was 80.
-30 is correct!` | 2 |
+| 1 | `Pablo Picasso
+1881
+1973
+Three Musicians
+1921
+` | `Artist: Pablo Picasso (1881 to 1973)
+Title: Three Musicians, 1921` | 1 |
+| 2 | `Brice Marden
+1938
+-1
+Distant Muses
+2000
+` | `Artist: Brice Marden (1938 to present)
+Title: Distant Muses, 2000` | 1 |
+| 3 | `Banksy
+-1
+-1
+Balloon Girl
+2002
+` | `Artist: Banksy (unknown)
+Title: Balloon Girl, 2002` | 1 |
 | 4 | `(none)` | `` | 2 |
 | 5 | `(none)` | `` | 2 |
+| 6 | `(none)` | `` | 2 |
+| 7 | `(none)` | `` | 1 |
 *Total: 10 points*
+---
 ```python
-# TODO: Import the random module
-def number_guess(num):
-    # TODO: Get a random number between 1-100
-    # TODO: Compare parameter num to the random number
-if __name__ == "__main__":
-    # Use the seed 900 to get the same pseudo random numbers every time
-    random.seed(900)
-    user_input = input()
-    tokens = user_input.split()
-    for token in tokens:
-        # Convert the string tokens into integers
-        num = int(token)
-        number_guess(num)
+class Artist:
+    def __init__(self, name='unknown', birth_year=-1, death_year=-1):
+        self.name = name
+        self.birth_year = birth_year
+        self.death_year = death_year
+    def print_info(self):
+        if self.birth_year >= 0 and self.death_year >= 0:
+            print(f"Artist: {self.name} ({self.birth_year} to {self.death_year})")
+        elif self.birth_year >= 0:
+            print(f"Artist: {self.name} ({self.birth_year} to present)")
+        else:
+            print(f"Artist: {self.name} (unknown)")
 ```
 ___
 ```python
-import random
-def number_guess(num):
-    rand_num = random.randint(1, 100)
-    if num < rand_num:
-        print(f"{num} is too low. Random number was {rand_num}.")
-    elif num > rand_num:
-        print(f"{num} is too high. Random number was {rand_num}.")
-    else:
-        print(f"{num} is correct!")
-if __name__ == "__main__":
-    random.seed(900)
-    user_input = input()
-    tokens = user_input.split()
-    for token in tokens:
-        num = int(token)
-        number_guess(num)
+from Artist import Artist
+class Artwork:
+    def __init__(self, title='unknown', year_created=-1, artist=None):
+        self.title = title
+        self.year_created = year_created
+        if artist is None:
+            self.artist = Artist()
+        else:
+            self.artist = artist
+    def print_info(self):
+        self.artist.print_info()
+        print(f"Title: {self.title}, {self.year_created}")
 ```
 ___
+```python
+from Artist import Artist
+from Artwork import Artwork
+if __name__ == "__main__":
+    user_artist_name = input()
+    user_birth_year = int(input())
+    user_death_year = int(input())
+    user_title = input()
+    user_year_created = int(input())
+    user_artist = Artist(user_artist_name, user_birth_year, user_death_year)
+    new_artwork = Artwork(user_title, user_year_created, user_artist)
+    new_artwork.print_info()
+```
+___
+```python
+class Artist:
+    # TODO: Define constructor with parameters to initialize instance attributes
+    #       (name, birth_year, death_year)
+    def print_info(self):
+        if self.birth_year >= 0 and self.death_year >= 0:
+            print(
+                f"Artist: {self.name} ({self.birth_year} to {self.death_year})"
+            )
+        elif self.birth_year >= 0:
+            print(f"Artist: {self.name} ({self.birth_year} to present)")
+        else:
+            print(f"Artist: {self.name} (unknown)")
+```
+---
+```python
+from Artist import Artist
+from Artwork import Artwork
+if __name__ == "__main__":
+    user_artist_name = input()
+    user_birth_year = int(input())
+    user_death_year = int(input())
+    user_title = input()
+    user_year_created = int(input())
+    user_artist = Artist(user_artist_name, user_birth_year, user_death_year)
+    new_artwork = Artwork(user_title, user_year_created, user_artist)
+    new_artwork.print_info()
+```
