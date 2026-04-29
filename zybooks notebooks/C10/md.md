@@ -31,7 +31,7 @@ x2 = -5.50
 *Total: 10 points*
 
 ___
-```
+```python
 # TODO: Import math module
 
 
@@ -58,3 +58,4 @@ if __name__ == "__main__":
     print_number(solution[0], "x1 = ")
     print_number(solution[1], "x2 = ")
 ```
+__
