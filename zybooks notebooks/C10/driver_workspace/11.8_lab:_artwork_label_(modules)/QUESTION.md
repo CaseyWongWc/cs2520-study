@@ -73,11 +73,37 @@ Title: Balloon Girl, 2002` | 1 |
 *Total: 10 points*
 ---
 ```python
+class Artist:
+    def __init__(self, name='unknown', birth_year=-1, death_year=-1):
+        self.name = name
+        self.birth_year = birth_year
+        self.death_year = death_year
 
+    def print_info(self):
+        if self.birth_year >= 0 and self.death_year >= 0:
+            print(f"Artist: {self.name} ({self.birth_year} to {self.death_year})")
+        elif self.birth_year >= 0:
+            print(f"Artist: {self.name} ({self.birth_year} to present)")
+        else:
+            print(f"Artist: {self.name} (unknown)")
 ```
 
 ```python
+from Artist import Artist
 
+
+class Artwork:
+    def __init__(self, title='unknown', year_created=-1, artist=None):
+        self.title = title
+        self.year_created = year_created
+        if artist is None:
+            self.artist = Artist()
+        else:
+            self.artist = artist
+
+    def print_info(self):
+        self.artist.print_info()
+        print(f"Title: {self.title}, {self.year_created}")
 ```
 ___
 ```python
