@@ -1,16 +1,21 @@
-# 11.8 LAB: Artwork label (modules)
-from Artist import Artist
-from Artwork import Artwork
+# 11.9 LAB: Guess the random number
+import random
 
+def number_guess(num):
+    rand_num = random.randint(1, 100)
+
+    if num < rand_num:
+        print(f"{num} is too low. Random number was {rand_num}.")
+    elif num > rand_num:
+        print(f"{num} is too high. Random number was {rand_num}.")
+    else:
+        print(f"{num} is correct!")
 
 if __name__ == "__main__":
-    user_artist_name = input()
-    user_birth_year = int(input())
-    user_death_year = int(input())
-    user_title = input()
-    user_year_created = int(input())
+    random.seed(900)
 
-    user_artist = Artist(user_artist_name, user_birth_year, user_death_year)
-    new_artwork = Artwork(user_title, user_year_created, user_artist)
-
-    new_artwork.print_info()
+    user_input = input()
+    tokens = user_input.split()
+    for token in tokens:
+        num = int(token)
+        number_guess(num)
