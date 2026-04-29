@@ -40,3 +40,4 @@ Examples of using timedelta()
 
 ___
 
+```python  ```
