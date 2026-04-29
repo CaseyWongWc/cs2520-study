@@ -73,6 +73,10 @@ Title: Balloon Girl, 2002` | 1 |
 *Total: 10 points*
 ---
 ```python
+
+```
+___
+```python
 class Artist:
     # TODO: Define constructor with parameters to initialize instance attributes
     #       (name, birth_year, death_year)
